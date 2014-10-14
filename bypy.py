@@ -1985,7 +1985,23 @@ try to create a file at PCS by combining slices, having MD5s specified
 				perr("Fail to make directory '{}'".format(ldir))
 				return result
 
-		return self.__downchunks(rfile, offset)
+		#return self.__downchunks(rfile, offset)
+		from subprocess import call
+		from urllib import urlencode, quote_plus
+		args = {
+			"method": "download",
+			"path": rfile,
+			"access_token": self.__access_token,
+		}
+		args = [k+'='+quote_plus(v) for k, v in args.iteritems()]
+		url = DPcsUrl + 'file?' + '&'.join(args)
+		#g = ['wget', '--no-check-certificate', '-c', '--user-agent=""', '-O"%s"' % file, "'%s'" % url]
+		if os.path.isfile(localfile):
+			g = ['curl','-L', '-k', '-C -', '-A ""', '-o\'%s\'' % localfile, "'%s'" % url]
+		else:
+			g = ['curl','-L', '-k', '-A ""', '-o\'%s\'' % localfile, "'%s'" % url]
+		ret = call(' '.join(g), shell=True) # a lot faster download speed with shell
+		return ret
 
 	def downfile(self, remotefile, localpath = ''):
 		''' Usage: downfile <remotefile> [localpath] - \
